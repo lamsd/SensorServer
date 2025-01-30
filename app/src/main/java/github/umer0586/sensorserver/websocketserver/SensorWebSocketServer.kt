@@ -24,6 +24,7 @@ import org.java_websocket.server.WebSocketServer
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.*
+import org.json.JSONArray
 
 data class ServerInfo(val ipAddress: String, val port: Int)
 class GPS
@@ -57,7 +58,6 @@ class SensorWebSocketServer(private val context: Context, address: InetSocketAdd
     var isRunning = false
         private set
 
-
     companion object
     {
 
@@ -78,6 +78,10 @@ class SensorWebSocketServer(private val context: Context, address: InetSocketAdd
         const val CLOSE_CODE_TOO_FEW_SENSORS = 4007
         const val CLOSE_CODE_NO_SENSOR_SPECIFIED = 4008
         const val CLOSE_CODE_PERMISSION_DENIED = 4009
+        val REQUIRED_SENSORS = listOf(
+            Sensor.TYPE_ACCELEROMETER,
+            Sensor.TYPE_GYROSCOPE,
+        )
 
     }
 
@@ -141,7 +145,7 @@ class SensorWebSocketServer(private val context: Context, address: InetSocketAdd
 
         }
 
-        Log.i(TAG, "requested sensors : $requestedSensorTypes")
+        Log.i(TAG, "10 ABCD requested sensors : $requestedSensorTypes")
 
         val requestedSensorList = mutableListOf<Sensor>()
 
@@ -159,7 +163,7 @@ class SensorWebSocketServer(private val context: Context, address: InetSocketAdd
 
         // For new requesting client, attach a tag of requested sensor type with client
         clientWebsocket.setAttachment(requestedSensorList)
-
+        Log.i(TAG, "10_requested_sensors : $requestedSensorList")
         for (sensor in requestedSensorList)
             registerListenerForSensor(sensor)
 
@@ -218,6 +222,8 @@ class SensorWebSocketServer(private val context: Context, address: InetSocketAdd
         notifyConnectionsChanged()
     }
 
+
+
     private fun registerListenerForSensor(sensor: Sensor)
     {
         // if this WebSocket Server is already listening for some type of sensor (e.g android.sensor.light)
@@ -226,7 +232,7 @@ class SensorWebSocketServer(private val context: Context, address: InetSocketAdd
         {
 
             // Log the sensor type and that it is already registered
-            Log.i(TAG, "Sensor ${sensor.stringType} already registered, skipping registration")
+            Log.i(TAG , "Sensor  registerListenerForSensor ${sensor.stringType} already registered, skipping registration")
 
             // Update a list
             // Duplicate entries allowed
@@ -236,6 +242,7 @@ class SensorWebSocketServer(private val context: Context, address: InetSocketAdd
             // No need to call sensorManager.registerListener()
             return
         }
+        Log.i(TAG , "Sensor_RegisterListenerForSensor ${sensor.stringType} already registered, skipping registration")
 
         // Register listener for requested sensor
         // Sensor events will be reported to the main thread if a handler is not provided
@@ -379,8 +386,8 @@ class SensorWebSocketServer(private val context: Context, address: InetSocketAdd
 
     override fun onMessage(websocket: WebSocket, message: String)
     {
-        //Log.d(TAG, "onMessage: $message")
-        //Log.d(TAG, "onMessage: ${Thread.currentThread().name}")
+        Log.d(TAG, "onMessage: $message")
+        Log.d(TAG, "onMessage: ${Thread.currentThread().name}")
         
         if(message.equals("getLastKnownLocation",ignoreCase = true) && websocket.getAttachment<Any>() is GPS)
         {
@@ -512,7 +519,7 @@ class SensorWebSocketServer(private val context: Context, address: InetSocketAdd
 
             override fun handleMessage(msg: Message)
             {
-                //Log.d(TAG,"Handler" + Thread.currentThread().name)
+                Log.d(TAG,"Handler" + Thread.currentThread().name)
                 message.clear()
                 val motionEvent = msg.obj as MotionEvent
 
